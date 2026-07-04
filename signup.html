@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — VillageMart</title>
+<link rel="icon" href="assets/placeholder.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-row">
+    <a href="index.html" class="brand"><span class="leaf-dot"></span>VillageMart</a>
+    <button class="hamburger" aria-label="Toggle menu">☰</button>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Shop</a>
+      <a href="cart.html">Cart <span class="cart-badge" id="cart-count" style="display:none;">0</span></a>
+      <a href="orders.html">Orders</a>
+      <a href="admin.html" id="admin-link" style="display:none;">Admin</a>
+      <span id="auth-slot" style="display:flex; gap:4px; align-items:center;"></span>
+    </nav>
+  </div>
+</header>
+
+<div class="auth-wrap">
+  <div class="card-panel">
+    <h2 class="text-center">Create your account</h2>
+    <p class="muted text-center mb-16">Join VillageMart for fast, fresh grocery delivery.</p>
+    <div class="form-error" id="error-box"></div>
+    <form id="signup-form">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" required placeholder="Asha Kumar">
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" required placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input type="tel" id="phone" required placeholder="9876543210">
+        </div>
+      </div>
+      <div class="field">
+        <label for="address">Delivery address</label>
+        <input type="text" id="address" placeholder="House no, street, village/town">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" required minlength="4" placeholder="At least 4 characters">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Create account</button>
+    </form>
+    <p class="form-note">Already have an account? <a href="login.html">Log in</a></p>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container"><p>🌿 VillageMart — fresh groceries from your village store, delivered with care.</p></div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    UI.initHeader();
+    document.getElementById("signup-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById("error-box");
+      errorBox.classList.remove("show");
+      try {
+        const user = Auth.signup({
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          phone: document.getElementById("phone").value,
+          address: document.getElementById("address").value,
+          password: document.getElementById("password").value
+        });
+        UI.toast("Account created! Welcome, " + user.name.split(" ")[0]);
+        setTimeout(() => window.location.href = "index.html", 500);
+      } catch (err) {
+        errorBox.textContent = err.message;
+        errorBox.classList.add("show");
+      }
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VillageMart — Fresh Groceries, Delivered</title>
+<meta name="description" content="Shop fresh vegetables, fruits, dairy and daily essentials from VillageMart.">
+<link rel="icon" href="assets/placeholder.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== HEADER / NAV ===================== -->
+<header class="site-header">
+  <div class="nav-row">
+    <a href="index.html" class="brand"><span class="leaf-dot"></span>VillageMart</a>
+    <button class="hamburger" aria-label="Toggle menu">☰</button>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Shop</a>
+      <a href="cart.html">Cart <span class="cart-badge" id="cart-count" style="display:none;">0</span></a>
+      <a href="orders.html">Orders</a>
+      <a href="admin.html" id="admin-link" style="display:none;">Admin</a>
+      <span id="auth-slot" style="display:flex; gap:4px; align-items:center;"></span>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== HERO BANNER ===================== -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-text">
+      <span class="hero-eyebrow">Farm fresh · Same-day delivery</span>
+      <h1>Groceries from your village, brought to your door.</h1>
+      <p>Hand-picked vegetables, fruits, dairy and daily essentials — sourced fresh and delivered fast. Real prices, real stock, updated live.</p>
+      <div class="hero-actions">
+        <a href="products.html" class="btn btn-accent">Start shopping</a>
+        <a href="#categories" class="btn btn-outline" style="border-color:#fff;color:#fff;">Browse categories</a>
+      </div>
+    </div>
+    <div class="hero-art"><span class="hero-basket">🧺</span></div>
+  </div>
+</section>
+<svg class="awning-divider" viewBox="0 0 1200 26" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M0,0 C 50,26 100,26 150,0 C 200,26 250,26 300,0 C 350,26 400,26 450,0 C 500,26 550,26 600,0 C 650,26 700,26 750,0 C 800,26 850,26 900,0 C 950,26 1000,26 1050,0 C 1100,26 1150,26 1200,0 L1200,0 L0,0 Z" fill="var(--cream)"></path>
+</svg>
+
+<div class="container">
+  <div class="search-bar">
+    <input type="text" id="home-search" placeholder="Search for tomatoes, milk, rice..." aria-label="Search products">
+    <button class="btn btn-primary" id="home-search-btn">Search</button>
+  </div>
+</div>
+
+<!-- ===================== CATEGORIES ===================== -->
+<section class="section" id="categories">
+  <div class="container">
+    <div class="section-title"><h2>Shop by category</h2><a href="products.html">View all →</a></div>
+    <div class="cat-scroll" id="category-scroll">
+      <!-- Category chips injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FEATURED PRODUCTS ===================== -->
+<section class="section">
+  <div class="container">
+    <div class="section-title"><h2>Fresh picks for you</h2><a href="products.html">See more →</a></div>
+    <div class="product-grid" id="featured-grid">
+      <!-- Product cards injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="container">
+    <p>🌿 VillageMart — fresh groceries from your village store, delivered with care.</p>
+    <p><a href="orders.html">Track your order</a> · <a href="admin.html">Store admin</a></p>
+  </div>
+</footer>
+
+<a class="wa-float" id="wa-float" target="_blank" rel="noopener" title="Order on WhatsApp">💬</a>
+
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    UI.initHeader();
+    document.getElementById("wa-float").href = UI.whatsappLink("Hi VillageMart! I'd like to place an order.");
+
+    // Search bar -> go to products page with query
+    const goSearch = () => {
+      const q = document.getElementById("home-search").value.trim();
+      window.location.href = "products.html" + (q ? "?search=" + encodeURIComponent(q) : "");
+    };
+    document.getElementById("home-search-btn").addEventListener("click", goSearch);
+    document.getElementById("home-search").addEventListener("keydown", e => { if (e.key === "Enter") goSearch(); });
+
+    const products = await Sheets.loadProducts();
+    renderCategories(products);
+    renderFeatured(products);
+  });
+
+  function renderCategories(products) {
+    const cats = [...new Set(products.map(p => p.category))];
+    const wrap = document.getElementById("category-scroll");
+    wrap.innerHTML = cats.map(c => `
+      <a href="products.html?category=${encodeURIComponent(c)}" class="cat-chip" style="text-decoration:none;">
+        <span class="emoji">${UI.categoryIcon(c)}</span>
+        <span class="label">${UI.escape(c)}</span>
+      </a>`).join("");
+  }
+
+  function renderFeatured(products) {
+    const grid = document.getElementById("featured-grid");
+    const inStockFirst = [...products].sort((a, b) => (b.stock > 0) - (a.stock > 0));
+    const featured = inStockFirst.slice(0, 8);
+    if (!featured.length) {
+      grid.innerHTML = `<div class="empty-state"><span class="emoji">🧺</span>No products yet. Check back soon!</div>`;
+      return;
+    }
+    grid.innerHTML = featured.map(p => UI.productCardHTML(p)).join("");
+    UI.bindAddToCart(grid, products);
+  }
+</script>
+</body>
+</html>

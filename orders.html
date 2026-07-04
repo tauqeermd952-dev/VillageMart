@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Orders — VillageMart</title>
+<link rel="icon" href="assets/placeholder.svg">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="nav-row">
+    <a href="index.html" class="brand"><span class="leaf-dot"></span>VillageMart</a>
+    <button class="hamburger" aria-label="Toggle menu">☰</button>
+    <nav class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="products.html">Shop</a>
+      <a href="cart.html">Cart <span class="cart-badge" id="cart-count" style="display:none;">0</span></a>
+      <a href="orders.html">Orders</a>
+      <a href="admin.html" id="admin-link" style="display:none;">Admin</a>
+      <span id="auth-slot" style="display:flex; gap:4px; align-items:center;"></span>
+    </nav>
+  </div>
+</header>
+
+<div class="page-title-bar">
+  <div class="container"><h1 style="font-size:1.6rem;">My orders</h1></div>
+</div>
+
+<div class="container section" id="orders-wrap">
+  <p class="muted">Loading orders...</p>
+</div>
+
+<footer class="site-footer">
+  <div class="container"><p>🌿 VillageMart — fresh groceries from your village store, delivered with care.</p></div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/orders.js"></script>
+<script src="js/ui.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    UI.initHeader();
+    if (!Auth.requireLogin("login.html")) return;
+
+    const user = Auth.currentUser();
+    const orders = Orders.forUser(user.email);
+    const wrap = document.getElementById("orders-wrap");
+
+    if (!orders.length) {
+      wrap.innerHTML = `<div class="empty-state"><span class="emoji">📦</span>You haven't placed any orders yet.<br><a href="products.html" class="btn btn-primary mt-16">Start shopping</a></div>`;
+      return;
+    }
+
+    wrap.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-head">
+          <div>
+            <strong>Order #${o.id}</strong>
+            <div class="muted" style="font-size:.82rem;">${UI.formatDate(o.date)}</div>
+          </div>
+          <span class="status-pill status-${o.status}">${o.status}</span>
+        </div>
+        <div class="order-items">
+          ${o.items.map(i => `<span>${i.qty} × ${UI.escape(i.name)} — ${UI.money(i.price * i.qty)}</span>`).join("")}
+        </div>
+        <div class="summary-row total" style="border-top:1px dashed var(--line); margin-top:10px; padding-top:10px;">
+          <span>Total</span><span>${UI.money(o.total)}</span>
+        </div>
+        <p class="muted" style="font-size:.82rem;">Delivering to: ${UI.escape(o.address)} · ${UI.escape(o.paymentMethod)}</p>
+      </div>
+    `).join("");
+  });
+</script>
+</body>
+</html>
